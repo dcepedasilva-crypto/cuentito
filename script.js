@@ -1,5 +1,5 @@
 // Configurar aquí el correo donde se recibirán las opiniones
-const AUTHOR_EMAIL = 'tu-correo@ejemplo.com'; 
+const AUTHOR_EMAIL = 'dcepeda.silva@docente.ceibal.edu.uy'; 
 
 // Ruta al worker de PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
