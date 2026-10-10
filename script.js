@@ -235,12 +235,17 @@ btnNext.addEventListener('click', () => {
 
 function updatePageInfo() {
     if (!pageFlip) return;
-    const current = pageFlip.getCurrentPageIndex() + 1;
+    const visiblePages = pageFlip.getPageView();
     const total = pageFlip.getPageCount();
-    pageInfo.innerText = `Página ${current} de ${total}`;
+
+    if (visiblePages.length === 1) {
+        pageInfo.innerText = `Página ${visiblePages[0] + 1} de ${total}`;
+    } else if (visiblePages.length > 1) {
+        pageInfo.innerText = `Páginas ${visiblePages[0] + 1}-${visiblePages[1] + 1} de ${total}`;
+    }
 }
 
-// Lectura de la página exacta posicinada en pantalla
+// Lectura en Voz Alta de todas las páginas visibles en pantalla (izquierda y derecha)
 btnTTS.addEventListener('click', () => {
     if (!('speechSynthesis' in window)) {
         alert('Tu navegador no soporta lectura en voz alta.');
@@ -252,19 +257,26 @@ btnTTS.addEventListener('click', () => {
         return;
     }
 
-    // Identificar el índice preciso de la página actual
-    const currentIndex = pageFlip ? pageFlip.getCurrentPageIndex() : 0;
-    let textToRead = extractedTexts[currentIndex] || '';
+    if (!pageFlip) return;
 
-    // Si la lectura está limpia de licencias pero no encuentra texto en esa cara concreta, notifica al usuario
+    // 1. Obtenemos las páginas que están abiertas en la pantalla
+    const visiblePages = pageFlip.getPageView(); 
+    
+    // 2. Unimos el texto narrativo de la página izquierda Y de la página derecha
+    let textToRead = visiblePages
+        .map(pageIndex => extractedTexts[pageIndex] || '')
+        .filter(text => text.trim() !== '')
+        .join(' ');
+
     if (!textToRead || textToRead.trim() === '') {
-        alert('Esta página no contiene texto narrativo para leer.');
+        alert('Las páginas visibles no contienen texto narrativo.');
         return;
     }
 
+    // 3. Configuramos la voz dulce y femenina
     const utterance = new SpeechSynthesisUtterance(textToRead);
     utterance.lang = 'es-ES';
-    utterance.rate = 0.85;
+    utterance.rate = 0.85; // Velocidad suave para niños
     utterance.pitch = 1.1;
 
     if (availableVoices.length === 0) {
@@ -296,6 +308,7 @@ btnTTS.addEventListener('click', () => {
     window.speechSynthesis.speak(utterance);
 });
 
+// Función para detener la voz si se cambia de página o se vuelve a presionar el botón
 function stopSpeech() {
     if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
@@ -303,6 +316,7 @@ function stopSpeech() {
     }
 }
 
+// Controles de zoom
 btnZoomIn.addEventListener('click', () => {
     if (currentScale < 1.5) {
         currentScale += 0.1;
@@ -317,6 +331,7 @@ btnZoomOut.addEventListener('click', () => {
     }
 });
 
+// Sistema de Puntuación con 5 Estrellas
 function initStarRating() {
     const stars = document.querySelectorAll('.star');
     const message = document.getElementById('rating-message');
